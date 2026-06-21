@@ -1,15 +1,14 @@
 // State Configs
 let isAdmin = false;
 let currentUserCode = null;
-let CodePlayers = []; // Portal Users generated with Codeusernames
+let CodePlayers = []; 
 
-// Spaced out effectively for the 520px pitch height
 const Formations = {
     "4-3-3": [
-        {x: 50, y: 92}, // GK
-        {x: 15, y: 75}, {x: 35, y: 75}, {x: 65, y: 75}, {x: 85, y: 75}, // DEF
-        {x: 25, y: 50}, {x: 50, y: 50}, {x: 75, y: 50}, // MID
-        {x: 20, y: 20}, {x: 50, y: 15}, {x: 80, y: 20}  // FWD
+        {x: 50, y: 92}, 
+        {x: 15, y: 75}, {x: 35, y: 75}, {x: 65, y: 75}, {x: 85, y: 75}, 
+        {x: 25, y: 50}, {x: 50, y: 50}, {x: 75, y: 50}, 
+        {x: 20, y: 20}, {x: 50, y: 15}, {x: 80, y: 20}  
     ],
     "3-5-2": [
         {x: 50, y: 92}, 
@@ -61,3 +60,34 @@ let historicalRatingsRecord = {};
 MySquad.forEach(p => {
     historicalRatingsRecord[p.name] = { totalSum: p.rating, appearances: 0 };
 });
+
+function adminTriggerSimulation() {
+    const activeUnits = MySquad.filter(p => p.status === "playing");
+    const log = document.getElementById('sim-log');
+    const displayContainer = document.getElementById('sim-results');
+    if (activeUnits.length !== 11) return alert(`SELECTION ERROR: Requires exactly 11 active players.`);
+
+    displayContainer.style.display = "block";
+    log.innerHTML = "⚽ Kickoff: Admin Squad matches up against World XI parameters... <br><br>";
+
+    activeUnits.forEach(player => {
+        let scoreMod = Math.random() > 0.5 ? Math.random()*1.5 : -Math.random()*1.0;
+        player.rating = Math.max(10, Math.min(99, +(player.rating + scoreMod).toFixed(1)));
+        
+        log.innerHTML += `🏃‍♂️ <strong>${player.name}</strong> Pitch action resolved. | New Rating: <strong>${Math.floor(player.rating)}</strong><br>`;
+        if (!historicalRatingsRecord[player.name]) historicalRatingsRecord[player.name] = { totalSum: 0, appearances: 0 };
+        historicalRatingsRecord[player.name].totalSum += player.rating;
+        historicalRatingsRecord[player.name].appearances += 1;
+
+        if (player.code) {
+            const portalUser = CodePlayers.find(p => p.code === player.code);
+            if (portalUser) {
+                portalUser.rating = player.rating; portalUser.appearances += 1; portalUser.totalSum += player.rating;
+            }
+        }
+    });
+
+    historicalGamesPlayed += 1;
+    log.innerHTML += "<br>🏁 Match concluded. Admin internal ratings modified successfully.";
+    renderMySquadScreen();
+}
