@@ -7,57 +7,74 @@ let canvas, ctx;
 let userPlayer, ball;
 let players = [];
 let userStats = { passes: 0, intercepts: 0, goals: 0, lost: 0, saves: 0, goalsConceded: 0 };
-let joystickVec = { x: 0, y: 0 };
-let isHoldingSpace = false;
 let mgScore = { user: 0, opp: 0 };
 
+// New Drag & Flick Mechanics State
+let isDragging = false;
+let targetPos = null;
+let touchHistory = [];
+
 function initMiniGameControls() {
-    // Movement Trackpad (Joystick)
-    const joyArea = document.getElementById('mg-joystick-area');
-    const thumb = document.getElementById('mg-thumb');
+    canvas.addEventListener('touchstart', handleTouchStart, {passive: false});
+    canvas.addEventListener('touchmove', handleTouchMove, {passive: false});
+    canvas.addEventListener('touchend', handleTouchEnd);
     
-    joyArea.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-        const rect = joyArea.getBoundingClientRect();
-        const touch = e.touches[0];
-        let dx = touch.clientX - (rect.left + rect.width/2);
-        let dy = touch.clientY - (rect.top + rect.height/2);
-        let dist = Math.sqrt(dx*dx + dy*dy);
-        let maxDist = 40;
-        
-        if(dist > maxDist) { dx = (dx/dist)*maxDist; dy = (dy/dist)*maxDist; }
-        thumb.style.transform = `translate(${dx}px, ${dy}px)`;
-        joystickVec = { x: dx/maxDist, y: dy/maxDist };
-    });
+    // Fallbacks for desktop testing
+    canvas.addEventListener('mousedown', handleTouchStart);
+    canvas.addEventListener('mousemove', handleTouchMove);
+    canvas.addEventListener('mouseup', handleTouchEnd);
+    canvas.addEventListener('mouseleave', () => { isDragging = false; targetPos = null; });
+}
+
+function getEventPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x: clientX - rect.left, y: clientY - rect.top };
+}
+
+function handleTouchStart(e) {
+    if (!gameActive) return;
+    e.preventDefault();
+    isDragging = true;
+    targetPos = getEventPos(e);
+    touchHistory = [{ x: targetPos.x, y: targetPos.y, time: Date.now() }];
+}
+
+function handleTouchMove(e) {
+    if (!gameActive || !isDragging) return;
+    e.preventDefault();
+    targetPos = getEventPos(e);
+    touchHistory.push({ x: targetPos.x, y: targetPos.y, time: Date.now() });
+    if (touchHistory.length > 5) touchHistory.shift(); // Keep only recent points for flick detection
+}
+
+function handleTouchEnd(e) {
+    if (!gameActive || !isDragging) return;
+    isDragging = false;
     
-    joyArea.addEventListener('touchend', () => {
-        thumb.style.transform = `translate(0px, 0px)`;
-        joystickVec = { x: 0, y: 0 };
-    });
-
-    // Flick/Shoot Trackpad Area
-    let swipeStart = null;
-    const actionArea = document.getElementById('mg-action-area');
-    actionArea.addEventListener('touchstart', (e) => { if(e.target.id !== 'mg-btn-hold') swipeStart = { x: e.touches[0].clientX, y: e.touches[0].clientY }; });
-    actionArea.addEventListener('touchend', (e) => {
-        if(!swipeStart || ball.owner !== userPlayer) return;
-        let dx = e.changedTouches[0].clientX - swipeStart.x;
-        let dy = e.changedTouches[0].clientY - swipeStart.y;
+    // Flick Detection (Pass/Shoot)
+    if (touchHistory.length > 1 && ball.owner === userPlayer) {
+        let start = touchHistory[0];
+        let end = targetPos || touchHistory[touchHistory.length - 1];
+        let dt = Date.now() - start.time;
         
-        // Pass / Shoot! Detach from user and apply momentum
-        ball.owner = null;
-        ball.vx = dx * 0.08; 
-        ball.vy = dy * 0.08;
-        userStats.passes++;
-        swipeStart = null;
-    });
-
-    // Hold Ball Button (Or Physical Spacebar)
-    const holdBtn = document.getElementById('mg-btn-hold');
-    holdBtn.addEventListener('touchstart', (e) => { e.preventDefault(); isHoldingSpace = true; holdBtn.style.opacity="0.7"; });
-    holdBtn.addEventListener('touchend', (e) => { e.preventDefault(); isHoldingSpace = false; holdBtn.style.opacity="1"; });
-    document.addEventListener('keydown', (e) => { if(e.code === 'Space') isHoldingSpace = true; });
-    document.addEventListener('keyup', (e) => { if(e.code === 'Space') isHoldingSpace = false; });
+        // If the swipe was recent and fast
+        if (dt > 0 && dt < 200) {
+            let dx = end.x - start.x;
+            let dy = end.y - start.y;
+            let dist = Math.hypot(dx, dy);
+            
+            if (dist > 10) { // Minimum flick distance
+                ball.owner = null;
+                // Apply momentum and clamp it so it doesn't break physics
+                ball.vx = Math.max(-18, Math.min(18, (dx / dt) * 10)); 
+                ball.vy = Math.max(-18, Math.min(18, (dy / dt) * 10));
+                userStats.passes++;
+            }
+        }
+    }
+    targetPos = null;
 }
 
 function startMiniGame() {
@@ -75,6 +92,8 @@ function startMiniGame() {
     matchHalf = 1;
     mgScore = { user: 0, opp: 0 }; 
     userStats = { passes: 0, intercepts: 0, goals: 0, lost: 0, saves: 0, goalsConceded: 0 };
+    isDragging = false;
+    targetPos = null;
     
     players = [];
     userPlayer = { x: canvas.width/2, y: canvas.height-50, isUser: true, team: 0, rating: uData.rating, type: uData.type };
@@ -137,12 +156,25 @@ function gameLoop() {
     let team0AI = players.filter(p => p.team === 0 && !p.isUser).sort((a,b) => a.distToBall - b.distToBall);
     let team1AI = players.filter(p => p.team === 1).sort((a,b) => a.distToBall - b.distToBall);
 
+    // Dynamic User Movement (Follows Finger)
+    if (isDragging && targetPos) {
+        let dx = targetPos.x - userPlayer.x;
+        let dy = targetPos.y - userPlayer.y;
+        let dist = Math.hypot(dx, dy);
+        let speed = 4.5; // Max drag follow speed
+        
+        if (dist > speed) {
+            userPlayer.x += (dx / dist) * speed;
+            userPlayer.y += (dy / dist) * speed;
+        } else {
+            userPlayer.x = targetPos.x;
+            userPlayer.y = targetPos.y;
+        }
+    }
+
     // Physics & AI Logic
     players.forEach(p => {
-        if(p.isUser) {
-            p.x += joystickVec.x * (isHoldingSpace ? 2 : 4); 
-            p.y += joystickVec.y * (isHoldingSpace ? 2 : 4);
-        } else {
+        if(!p.isUser) {
             // Is this AI one of the closest 2 to the ball?
             let isPressing = (p === team0AI[0] || p === team0AI[1] || p === team1AI[0] || p === team1AI[1]);
 
@@ -180,7 +212,7 @@ function gameLoop() {
                 ball.owner = p; 
             } else if (ball.owner.team !== p.team) {
                 let defenseForce = p.rating;
-                let offenseForce = ball.owner.rating + (ball.owner.isUser && isHoldingSpace ? 30 : 0);
+                let offenseForce = ball.owner.rating;
                 if (Math.random() * defenseForce > Math.random() * offenseForce) {
                     if (p.isUser) userStats.intercepts++;
                     if (ball.owner.isUser) userStats.lost++;
@@ -211,14 +243,27 @@ function gameLoop() {
     ctx.fillRect(canvas.width/2 - 40, 0, 80, 10);
     ctx.fillRect(canvas.width/2 - 40, canvas.height-10, 80, 10);
 
+    // Draw Indicator Arrow (Points EXACTLY at your target position)
+    if (isDragging && targetPos) {
+        ctx.fillStyle = '#FFB81C'; // Yellow indicator arrow
+        ctx.beginPath();
+        ctx.moveTo(targetPos.x, targetPos.y - 12);
+        ctx.lineTo(targetPos.x - 8, targetPos.y - 24);
+        ctx.lineTo(targetPos.x + 8, targetPos.y - 24);
+        ctx.fill();
+    }
+
     // Draw Entities
     players.forEach(p => {
         ctx.fillStyle = p.isUser ? '#FFB81C' : (p.team === 0 ? '#0A3161' : '#CE1126');
         ctx.beginPath(); ctx.arc(p.x, p.y, p.isUser ? 8 : 6, 0, Math.PI*2); ctx.fill();
     });
 
-    ctx.fillStyle = '#fff';
-    ctx.beginPath(); ctx.arc(ball.x, ball.y, 4, 0, Math.PI*2); ctx.fill();
+    // Draw Ball as Emoji
+    ctx.font = '22px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('⚽', ball.x, ball.y);
 
     requestAnimationFrame(gameLoop);
 }
