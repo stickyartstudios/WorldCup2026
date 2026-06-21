@@ -2,10 +2,8 @@
 let adminTapCount = 0;
 let adminTapTimer = null;
 
-// Add your Google Apps Script Web App URL here
 const SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz9EzDAvIXHcQjjLnSV1jagJVp3GKjG8vmrxnuFvmonKQ7-6SKX9wj0RJQ63s4sS5Hkxw/exec";
 
-// Load data from Local Storage on startup
 window.onload = () => {
     const savedData = localStorage.getItem('WC_CodePlayers');
     if(savedData) CodePlayers = JSON.parse(savedData);
@@ -33,36 +31,16 @@ function handleAdminTap() {
     if (adminTapCount === 2) { adminTapCount = 0; toggleAdmin(); }
 }
 
-// Global PC Shortcut (Ctrl + X) to enter Admin state
-document.addEventListener('keydown', (e) => {
-    if (e.ctrlKey && e.key.toLowerCase() === 'x') { e.preventDefault(); toggleAdmin(); }
-});
+function openDictModal() { document.getElementById('dict-modal').style.display = 'flex'; }
+function closeDictModal() { document.getElementById('dict-modal').style.display = 'none'; }
 
-// --- DICTIONARY MODAL ---
-function openDictModal() {
-    document.getElementById('dict-modal').style.display = 'flex';
-}
-
-function closeDictModal() {
-    document.getElementById('dict-modal').style.display = 'none';
-}
-
-// --- MODAL OUTSIDE CLICK LISTENER ---
 window.addEventListener('click', (e) => {
     const dictModal = document.getElementById('dict-modal');
     const portalModal = document.getElementById('portal-modal');
-    
-    // e.target checks if the user clicked directly on the overlay background 
-    // rather than the content box inside it.
-    if (e.target === dictModal) {
-        closeDictModal();
-    }
-    if (e.target === portalModal) {
-        closePortalModal();
-    }
+    if (e.target === dictModal) closeDictModal();
+    if (e.target === portalModal) closePortalModal();
 });
 
-// --- NAVIGATION & PORTAL MODAL ---
 function navigate(screenId, btnElement) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
@@ -75,22 +53,14 @@ function navigate(screenId, btnElement) {
     if(screenId === 'screen-metrics') renderMetricsScreen(); 
 }
 
-function openPortalModal() {
-    document.getElementById('portal-modal').style.display = 'flex';
-}
+function openPortalModal() { document.getElementById('portal-modal').style.display = 'flex'; }
+function closePortalModal() { document.getElementById('portal-modal').style.display = 'none'; }
 
-function closePortalModal() {
-    document.getElementById('portal-modal').style.display = 'none';
-}
-
-// --- PORTAL LOGIN / REGISTER ---
 function registerUser() {
-    // 1 Profile per "IP"/Device restriction
     const existingCode = localStorage.getItem('WC_DeviceLocked');
     if (existingCode) {
         const user = CodePlayers.find(p => p.code === existingCode);
         if (user) {
-            // Render the reminder and the delete option directly into the result div
             const resDiv = document.getElementById('reg-result');
             resDiv.innerHTML = `
                 <div style="color:var(--text-main); margin-bottom:12px; font-size:0.85rem; font-weight:normal;">
@@ -102,7 +72,6 @@ function registerUser() {
             `;
             return;
         } else {
-            // Edge case: If the lock exists but the user was somehow deleted, clear the lock.
             localStorage.removeItem('WC_DeviceLocked');
         }
     }
@@ -111,11 +80,9 @@ function registerUser() {
     const type = document.getElementById('reg-type').value;
     const jersey = document.getElementById('reg-jersey').value;
     
-    // Clean name for code: Remove spaces AND punctuation, keep only letters/numbers
     let cleanName = name.replace(/[^a-zA-Z0-9]/g, '');
     if (cleanName.length < 3 || !jersey) return alert("Enter a valid name (min 3 alphanumeric chars) and jersey.");
     
-    // Format: 3 Letters + 3 Numbers (no spaces/punctuation)
     const letters = cleanName.substring(0,3).toUpperCase();
     const numbers = String(Math.floor(Math.random() * 900) + 100); 
     const code = letters + numbers;
@@ -128,11 +95,9 @@ function registerUser() {
         rating: 50, status: "benched", code: code 
     });
 
-    // Save locally & lock device (saving the actual code to use later)
     localStorage.setItem('WC_CodePlayers', JSON.stringify(CodePlayers));
     localStorage.setItem('WC_DeviceLocked', code);
 
-    // Send to Google Sheets seamlessly in the background
     fetch(SHEET_WEB_APP_URL, {
         method: 'POST',
         body: JSON.stringify({ code: code, name: name, type: type, rating: 50 })
@@ -141,27 +106,20 @@ function registerUser() {
     document.getElementById('reg-result').innerHTML = `<span style="color:var(--fifa-green);">Success! Your codeusername is: ${code}</span>`;
 }
 
-// --- ACCOUNT DELETION LOGIC ---
 function deleteExistingAccount(code) {
     const user = CodePlayers.find(p => p.code === code);
     if (!user) return;
     
-    // The exact warning prompt requested
     const confirmMsg = `If you delete this ID you'll lose '${user.name}' with '${user.type}' and '${user.rating.toFixed(1)}' Current Rating.\n\nAre you sure you want to proceed?`;
     
     if (confirm(confirmMsg)) {
-        // Remove from database and squad arrays
         CodePlayers = CodePlayers.filter(p => p.code !== code);
         MySquad = MySquad.filter(p => p.code !== code);
         
-        // Save the cleaned arrays and remove the device lock
         localStorage.setItem('WC_CodePlayers', JSON.stringify(CodePlayers));
         localStorage.removeItem('WC_DeviceLocked');
         
-        // If the user is currently logged in, log them out
-        if (currentUserCode === code) {
-            logoutUser();
-        }
+        if (currentUserCode === code) logoutUser();
         
         document.getElementById('reg-result').innerHTML = `<span style="color:var(--text-muted); font-weight:normal; font-size:0.85rem;">Account deleted. You can now register a new player.</span>`;
         renderMySquadScreen();
@@ -169,13 +127,12 @@ function deleteExistingAccount(code) {
 }
 
 function loginUser() {
-    // Remove all punctuation and spaces from input for strict validation
     const code = document.getElementById('login-code').value.toUpperCase().replace(/[^A-Z0-9]/g, '');
     const user = CodePlayers.find(p => p.code === code);
     if(!user) return alert("System could not verify this codeusername.");
     
     currentUserCode = code;
-    localStorage.setItem('WC_CurrentUser', code); // Persist login
+    localStorage.setItem('WC_CurrentUser', code);
     updatePortalDashboard();
     renderMySquadScreen();
 }
@@ -188,12 +145,10 @@ function logoutUser() {
 }
 
 function updatePortalDashboard() {
-    const simBtn = document.getElementById('btn-sim-user');
     if(currentUserCode) {
         document.getElementById('portal-login').style.display = 'none';
         document.getElementById('portal-register').style.display = 'none';
         document.getElementById('portal-dashboard').style.display = 'block';
-        simBtn.style.display = 'block';
 
         const user = CodePlayers.find(p => p.code === currentUserCode);
         document.getElementById('dash-name').innerText = user.name;
@@ -203,14 +158,8 @@ function updatePortalDashboard() {
         document.getElementById('portal-login').style.display = 'block';
         document.getElementById('portal-register').style.display = 'block';
         document.getElementById('portal-dashboard').style.display = 'none';
-        simBtn.style.display = 'none';
     }
 }
-
-// --- WORLD XI ---
-setInterval(() => {
-    if (document.getElementById('screen-world-xi').classList.contains('active')) renderWorldXIScreen();
-}, 5000);
 
 function randomizeWorldXI() {
     const formationKeys = Object.keys(Formations);
@@ -245,7 +194,6 @@ function renderWorldXIScreen(formation = "4-3-3") {
     });
 }
 
-// --- PLAYER DRAG ENGINE (MY SQUAD) ---
 let activeDragId = null;
 
 function initDrag(e, id) {
@@ -418,11 +366,10 @@ function renderMetricsScreen() {
     const eligibleUsers = CodePlayers.filter(p => p.appearances >= 10);
     eligibleUsers.sort((a,b) => b.rating - a.rating); 
     
-    // ONLY SHOW TOP 25 TO PREVENT CRASHES
     const top25 = eligibleUsers.slice(0, 25);
     
     if(top25.length === 0) {
-        historyList.innerHTML = "<div style='color:var(--text-muted); font-size:0.85rem; padding: 10px; text-align:center;'>No players have achieved 10+ appearances to rank on the board yet. Play matches to qualify!</div>";
+        historyList.innerHTML = "<div style='color:var(--text-muted); font-size:0.85rem; padding: 10px; text-align:center;'>No players have achieved 10+ appearances to rank on the public ladder yet. Play matches to qualify!</div>";
     } else {
         top25.forEach((user, index) => {
             historyList.innerHTML += `
