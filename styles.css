@@ -24,10 +24,9 @@ body {
     position: fixed; top: 0; left: 0; width: 75px; height: 75px; z-index: 9999;
 }
 
-/* Floating Book Button for Dictionary */
 #btn-dict {
     position: fixed; top: 15px; right: 15px; z-index: 1500;
-    background: #ff9800; /* Vivid Orange */
+    background: #ff9800;
     color: #fff; border: 2px solid #fff;
     width: 44px; height: 44px; border-radius: 50%;
     font-size: 1.2rem; display: flex; justify-content: center; align-items: center;
@@ -35,7 +34,6 @@ body {
 }
 #btn-dict:active { transform: scale(0.95); }
 
-/* Inline Dictionary Button inside Modal */
 .dict-inline-btn {
     background: #ff9800; color: #fff; border: none; border-radius: 50%;
     width: 26px; height: 26px; font-size: 0.85rem;
@@ -75,13 +73,12 @@ body.is-admin .admin-restricted { display: block !important; }
 .screen { display: none; padding: 15px; flex-grow: 1; }
 .screen.active { display: block; }
 
-/* Modal Portal Background Blur */
 .portal-modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(6px);
     z-index: 2000; display: none; justify-content: center; align-items: center;
 }
-#dict-modal { z-index: 5000; } /* Dictionary goes above other modals */
+#dict-modal { z-index: 5000; }
 
 .portal-modal-content {
     background: white; width: 90%; max-width: 420px; padding: 20px;
@@ -94,7 +91,6 @@ body.is-admin .admin-restricted { display: block !important; }
     font-size: 1.5rem; color: var(--text-muted); cursor: pointer;
 }
 
-/* Pitch & Nodes */
 .stadium-pitch {
     width: 100%; height: 520px; background-color: var(--pitch-green);
     background-image: linear-gradient(to bottom, transparent 49%, var(--pitch-lines) 50%, transparent 51%), radial-gradient(circle at center, transparent 19%, var(--pitch-lines) 20%, transparent 21%);
@@ -119,7 +115,6 @@ body.is-admin .admin-restricted { display: block !important; }
     border-radius: 4px; margin-top: 4px; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-/* UI Elements */
 .action-btn-primary, .action-btn-success {
     color: #fff; border: none; padding: 14px; border-radius: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
     width: 100%; margin-bottom: 15px; cursor: pointer; font-size: 0.9rem; box-shadow: 0 4px 10px rgba(0,0,0,0.15);
@@ -152,15 +147,3 @@ body.is-admin .admin-restricted { display: block !important; }
 .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
 .metric-box { background: var(--card-bg); padding: 12px; border-radius: 6px; border-top: 3px solid var(--fifa-blue); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 .metric-val { font-size: 1.6rem; font-weight: 800; color: var(--fifa-blue); }
-
-/* Minigame Core Layout */
-#minigame-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 3000; display: none; flex-direction: column; }
-#mg-header { background: #111; color: #fff; padding: 15px; text-align: center; font-weight: 800; font-size: 1.2rem; display: flex; justify-content: space-between; align-items: center; }
-#mg-canvas { flex: 1; width: 100%; background: #00B140; display: block; touch-action: none; cursor: crosshair;}
-#mg-controls { height: 150px; background: #222; display: flex; position: relative; user-select: none; touch-action: none; }
-#mg-joystick-area { flex: 1; position: relative; border-right: 2px solid #444; }
-#mg-joystick { width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); }
-#mg-thumb { width: 40px; height: 40px; background: #fff; border-radius: 50%; position: absolute; top: 30px; left: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-#mg-action-area { flex: 1; position: relative; }
-#mg-btn-hold { position: absolute; bottom: 30px; right: 30px; width: 90px; height: 90px; border-radius: 50%; background: var(--fifa-blue); color: white; font-weight: 900; font-size: 1rem; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.4); text-transform: uppercase;}
-.mg-help { position: absolute; top: 10px; width: 100%; text-align: center; color: #888; font-size: 0.75rem; font-weight: bold; pointer-events: none;}
