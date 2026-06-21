@@ -73,42 +73,7 @@
                     <div id="dash-rating" class="metric-val" style="font-size:2rem;">50.0</div>
                     <div style="font-size:0.85rem; color:var(--text-muted); font-weight: bold; margin-top:5px;">MATCHES PLAYED: <span id="dash-matches" style="color:var(--text-main);">0</span></div>
                 </div>
-                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:10px;">Go to the <b>World XI</b> tab to jump into live simulation matches and boost your rank!</p>
                 <button class="action-btn-primary" style="margin-top:20px; background:var(--fifa-red);" onclick="logoutUser()">Log Out</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="match-finish-modal" class="portal-modal-overlay" style="z-index: 4000;">
-        <div class="portal-modal-content" style="text-align:center;">
-            <button class="close-modal-btn" onclick="document.getElementById('match-finish-modal').style.display='none'">×</button>
-            <h2 class="section-title text-blue">Match Finished!</h2>
-            <h1 id="mf-score" style="font-size: 2.5rem; margin: 10px 0; color:var(--text-main);">0 - 0</h1>
-            <div id="mf-stats" style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;"></div>
-            <div style="background: var(--stadium-bg); padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                <div style="font-size:0.8rem; font-weight:bold; color:var(--text-muted);">RATING ADJUSTMENT</div>
-                <div id="mf-adjustment" style="font-size: 1.5rem; font-weight: 800; color: var(--fifa-green);">+0.0</div>
-                <div style="font-size:0.9rem; margin-top:5px;">New Rank: <span id="mf-newrank" style="font-weight:bold;">50.0</span></div>
-            </div>
-            <button class="action-btn-primary" style="margin-top: 20px;" onclick="document.getElementById('match-finish-modal').style.display='none'">Back to Dashboard</button>
-        </div>
-    </div>
-
-    <div id="minigame-container">
-        <div id="mg-header">
-            <span>Time: <span id="mg-time">10:00</span></span>
-            <span style="color:var(--fifa-yellow);">Score: <span id="mg-score">0 - 0</span></span>
-            <button onclick="endMiniGame(true)" style="background:var(--fifa-red); color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:bold;">Forfeit</button>
-        </div>
-        <canvas id="mg-canvas"></canvas>
-        <div id="mg-controls">
-            <div id="mg-joystick-area">
-                <div class="mg-help">TRACKPAD (Move)</div>
-                <div id="mg-joystick"><div id="mg-thumb"></div></div>
-            </div>
-            <div id="mg-action-area">
-                <div class="mg-help">FLICK TO SHOOT / PASS</div>
-                <button id="mg-btn-hold">HOLD<br>(Space)</button>
             </div>
         </div>
     </div>
@@ -116,11 +81,7 @@
     <div class="mobile-container">
         
         <div id="screen-world-xi" class="screen active">
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <button class="action-btn-primary" onclick="randomizeWorldXI()" style="width: auto; padding: 10px 20px; font-size: 1.6rem; margin-bottom: 0;">🎲</button>
-                <button id="btn-sim-user" class="action-btn-success" onclick="startMiniGame()" style="display: none; flex-grow: 1; margin-bottom: 0; background:var(--fifa-yellow); color:#111;">🎮 Play Mini Match</button>
-            </div>
-            
+            <button class="action-btn-primary" onclick="randomizeWorldXI()" style="width: auto; padding: 10px 20px; font-size: 1.6rem; margin-bottom: 15px;">🎲</button>
             <div id="world-pitch" class="stadium-pitch"></div>
             <h3 class="section-title text-blue">Roster Breakdown</h3>
             <div id="world-list" class="list-wrapper"></div>
@@ -191,6 +152,5 @@
 
     <script src="engine.js"></script>
     <script src="app.js"></script>
-    <script src="simulation.js"></script>
 </body>
 </html>
