@@ -81,7 +81,10 @@
     <div class="mobile-container">
         
         <div id="screen-world-xi" class="screen active">
-            <button class="action-btn-primary" onclick="randomizeWorldXI()" style="width: auto; padding: 10px 20px; font-size: 1.6rem; margin-bottom: 15px;">🎲</button>
+            <div style="display: flex; gap: 10px;">
+                <button class="action-btn-primary" onclick="randomizeWorldXI()" style="width: auto; padding: 10px 20px; font-size: 1.6rem; margin-bottom: 15px;">🎲</button>
+                <button id="btn-user-sim" class="action-btn-success" onclick="userSimulateMatch()" style="display: none; flex-grow: 1; margin-bottom: 15px; background:var(--fifa-yellow); color:#111; font-weight:bold;">⚽ Simulate Match vs World XI</button>
+            </div>
             <div id="world-pitch" class="stadium-pitch"></div>
             <h3 class="section-title text-blue">Roster Breakdown</h3>
             <div id="world-list" class="list-wrapper"></div>
@@ -89,8 +92,8 @@
 
         <div id="screen-my-squad" class="screen">
             <div style="display:flex; gap:10px; margin-bottom:10px;">
-            <button class="action-btn-success admin-restricted" onclick="adminTriggerSimulation()">⚽ Admin Match Kick Off</button>
-            <button class="action-btn-primary admin-restricted" onclick="saveLineup()" style="background:var(--fifa-blue);">💾 Save Lineup</button>
+                <button class="action-btn-success admin-restricted" onclick="adminTriggerSimulation()">⚽ Admin Match Kick Off</button>
+                <button class="action-btn-primary admin-restricted" onclick="saveLineup()" style="background:var(--fifa-blue);">💾 Save Lineup</button>
             </div>
             
             <div id="my-pitch" class="stadium-pitch" style="touch-action: none;"></div>
