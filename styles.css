@@ -154,12 +154,9 @@ body.is-admin .admin-restricted { display: block !important; }
 .metric-val { font-size: 1.6rem; font-weight: 800; color: var(--fifa-blue); }
 
 /* Minigame Core Layout */
-#minigame-container {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: #000; z-index: 3000; display: none; flex-direction: column;
-}
+#minigame-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 3000; display: none; flex-direction: column; }
 #mg-header { background: #111; color: #fff; padding: 15px; text-align: center; font-weight: 800; font-size: 1.2rem; display: flex; justify-content: space-between; align-items: center; }
-#mg-canvas { flex: 1; width: 100%; background: #00B140; display: block; touch-action: none; }
+#mg-canvas { flex: 1; width: 100%; background: #00B140; display: block; touch-action: none; cursor: crosshair;}
 #mg-controls { height: 150px; background: #222; display: flex; position: relative; user-select: none; touch-action: none; }
 #mg-joystick-area { flex: 1; position: relative; border-right: 2px solid #444; }
 #mg-joystick { width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); }
